@@ -1,0 +1,11 @@
+ultralytics==8.2.*
+streamlit
+gradio
+flask
+opencv-python
+pillow
+numpy
+# Notebooks (EfficientNetB0, U-Net)
+tensorflow==2.15.*
+scikit-learn
+matplotlib
