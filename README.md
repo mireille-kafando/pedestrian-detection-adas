@@ -4,6 +4,8 @@ Projet de session du cours **PIF6004** (Université du Québec à Trois-Rivière
 
 *English summary below.*
 
+**[Essayer la démo en ligne](https://mireille-kafando.github.io/demo-pietons/)** · [Live demo](https://mireille-kafando.github.io/demo-pietons/)
+
 ## En bref
 
 L'objectif était de détecter les piétons (`pedestrian`) et les cyclistes (`rider`) dans des scènes urbaines, une fonction centrale des systèmes avancés d'aide à la conduite. Trois approches ont été implémentées et comparées :
@@ -59,7 +61,9 @@ Le manuel d'utilisation est dans [`docs/manuel_utilisateur_interface.pdf`](docs/
 
 Le seul changement apporté au code d'origine concerne le chemin du modèle. Il pointait vers un dossier Windows local et a été rendu relatif au dépôt.
 
-Le dossier [`demo/`](demo/) contient une démo ajoutée en 2026 pour Hugging Face Spaces (Gradio). Elle reprend les mêmes poids, avec un seuil de confiance réglable, le nombre de détections par classe et deux images d'exemple. Elle corrige aussi l'ordre des canaux de couleur (voir les écarts ci-dessous).
+**Démo en ligne : [mireille-kafando.github.io/demo-pietons](https://mireille-kafando.github.io/demo-pietons/).** Ajoutée en 2026, elle exécute les mêmes poids, exportés au format ONNX, directement dans le navigateur avec ONNX Runtime Web. Elle propose un seuil de confiance réglable et le nombre de détections par classe. Sur l'image d'exemple, elle retrouve les mêmes détections qu'Ultralytics. Elle corrige aussi l'ordre des canaux de couleur (voir les écarts ci-dessous).
+
+Le dossier [`demo/`](demo/) contient le script d'export ONNX et une version Gradio de la même démo, à lancer en local :
 
 ```bash
 pip install gradio==6.32.0 -r demo/requirements.txt
@@ -76,7 +80,7 @@ app/
 ├── streamlit_app.py
 ├── gradio_app.py
 └── flask_app/ (app.py, templates/index.html)
-demo/                    Démo en ligne (Gradio, Hugging Face Spaces), ajoutée en 2026
+demo/                    Export ONNX pour la démo en ligne et version Gradio locale (2026)
 models/best.pt                                           Poids YOLOv8n (classes pedestrian, rider)
 docs/
 ├── rapport_phase1_PIF6004.pdf
@@ -93,7 +97,7 @@ Le notebook de la phase 2 est présenté avec ses sorties. Les figures qui repro
 
 Le projet est présenté tel qu'il a été remis. Une relecture du code a mis en évidence les points suivants, rapportés ici par transparence.
 
-- **Ordre des canaux de couleur dans les interfaces Streamlit et Gradio.** Ces deux interfaces convertissent l'image en tableau numpy RGB avant de la passer au modèle, alors qu'Ultralytics interprète les tableaux numpy comme du BGR (convention OpenCV). Le modèle reçoit donc une image aux canaux rouge et bleu inversés, ce qui réduit les détections : sur l'image d'exemple `bus.jpg`, il en trouve 0 au lieu de 3 au seuil de 0,25. L'interface Flask, qui transmet le chemin du fichier, n'est pas concernée. La démo du dossier `demo/` convertit l'image avant la prédiction.
+- **Ordre des canaux de couleur dans les interfaces Streamlit et Gradio.** Ces deux interfaces convertissent l'image en tableau numpy RGB avant de la passer au modèle, alors qu'Ultralytics interprète les tableaux numpy comme du BGR (convention OpenCV). Le modèle reçoit donc une image aux canaux rouge et bleu inversés, ce qui réduit les détections : sur l'image d'exemple `bus.jpg`, il en trouve 0 au lieu de 3 au seuil de 0,25. L'interface Flask, qui transmet le chemin du fichier, n'est pas concernée. La démo en ligne et la version Gradio du dossier `demo/` convertissent l'image avant la prédiction.
 - **Images d'entrée d'EfficientNetB0 et d'U-Net.** Les deux approches lisent les fichiers `*_gtFine_color.png` de Cityscapes. Ce sont les masques d'annotation colorés, et non les photographies (`leftImg8bit`). Les modèles ont donc appris sur des rendus des étiquettes. Leurs résultats ne mesurent pas la détection sur de vraies images.
 - **Initialisation de YOLOv8.** Le modèle est construit à partir de `yolov8n.yaml`, c'est-à-dire de l'architecture seule, alors que le commentaire de la cellule parle d'un modèle pré-entraîné. Le journal d'entraînement ne mentionne aucun transfert de poids pré-entraînés.
 - **Évaluation de YOLOv8.** Les 15 images de validation servent à la fois à choisir les meilleurs poids (`best.pt`) et à mesurer les performances rapportées. Il n'y a pas d'ensemble de test séparé.
@@ -130,13 +134,13 @@ Course project for **PIF6004** (Université du Québec à Trois-Rivières, Summe
   2. U-Net segmentation (Cityscapes);
   3. **YOLOv8n** trained on a 75-image dataset I annotated with CVAT. YOLOv5/YOLOv8 training on converted Cityscapes polygons failed.
 - **Results:** YOLOv8 performs best (precision 0.831, recall 0.536, **mAP@0.5 0.685**; pedestrians 0.592, cyclists 0.778). EfficientNetB0 and U-Net results are weak (U-Net pixel F1 0.052).
-- **Deployment:** the YOLOv8 weights (`models/best.pt`, 6 MB) are served through **Streamlit**, **Gradio** and **Flask** apps that return the annotated image. The `demo/` folder holds a Gradio demo for Hugging Face Spaces, added in 2026.
+- **Deployment:** the YOLOv8 weights (`models/best.pt`, 6 MB) are served through **Streamlit**, **Gradio** and **Flask** apps that return the annotated image. **Live demo: [mireille-kafando.github.io/demo-pietons](https://mireille-kafando.github.io/demo-pietons/)**: the same weights, exported to ONNX, run in the browser with ONNX Runtime Web (added in 2026).
 - **Known issues:** the project is shown as submitted. A post-hoc review found several issues:
   - the EfficientNetB0 and U-Net pipelines read Cityscapes colour annotation masks (`gtFine_color`) instead of the photographs;
   - YOLOv8 was built from `yolov8n.yaml` without pretrained weights;
   - YOLOv8 was evaluated on the same 15 images used to select its weights;
   - the deployed weights likely come from a different run than the reported one;
-  - the Streamlit and Gradio apps pass RGB arrays to a model that expects BGR, which reduces detections (fixed in the online demo).
+  - the Streamlit and Gradio apps pass RGB arrays to a model that expects BGR, which reduces detections (fixed in the live demo).
 
   They are listed in *Écarts relevés*.
 

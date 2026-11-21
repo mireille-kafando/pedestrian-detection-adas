@@ -14,15 +14,16 @@ short_description: YOLOv8n pedestrian and rider detection (Cityscapes)
 
 # Démo : détection de piétons (YOLOv8n)
 
-Ce dossier contient la démo en ligne du projet, déployée sur Hugging Face Spaces. L'en-tête ci-dessus est la configuration lue par Hugging Face.
+La démo en ligne du projet est sur [mireille-kafando.github.io/demo-pietons](https://mireille-kafando.github.io/demo-pietons/) : le modèle, exporté au format ONNX par `export_onnx.py`, s'y exécute dans le navigateur. Ce dossier contient ce script d'export et une version Gradio de la même démo, à lancer en local ou sur Hugging Face Spaces (l'en-tête ci-dessus est la configuration lue par Hugging Face ; les Spaces Gradio demandent un abonnement payant).
 
 | Fichier | Rôle |
 |---|---|
 | `app.py` | Interface Gradio : envoi d'image, seuil de confiance, image annotée et nombre de détections par classe. |
 | `requirements.txt` | Versions de PyTorch (CPU) et d'Ultralytics testées avec l'application. |
 | `packages.txt` | Bibliothèques système nécessaires à OpenCV. |
+| `export_onnx.py` | Export de `models/best.pt` au format ONNX pour la démo dans le navigateur. |
 
-Pour le déploiement, le Space contient ces trois fichiers, ce README et une copie de [`../models/best.pt`](../models/best.pt).
+Pour un Space Hugging Face, il faut ces fichiers, ce README et une copie de [`../models/best.pt`](../models/best.pt).
 
 Lancement en local, depuis la racine du dépôt :
 
@@ -35,4 +36,4 @@ Les images d'exemple sont celles fournies avec la bibliothèque Ultralytics ; au
 
 ---
 
-*Online demo of the project (Gradio on Hugging Face Spaces). The Space holds these files plus a copy of `models/best.pt`. The example images ship with the Ultralytics library; no Cityscapes images are redistributed.*
+*The live demo runs in the browser at mireille-kafando.github.io/demo-pietons (ONNX export made by `export_onnx.py`). This folder also holds a Gradio version to run locally or on Hugging Face Spaces (with a copy of `models/best.pt`). The example images ship with the Ultralytics library; no Cityscapes images are redistributed.*
