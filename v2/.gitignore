@@ -1,0 +1,8 @@
+data/
+data_val_v1/
+data.yaml
+data_val_v1.yaml
+runs/
+runs_eval/
+yolov8n.pt
+best_v2.onnx

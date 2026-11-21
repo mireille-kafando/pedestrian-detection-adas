@@ -12,15 +12,17 @@ import ultralytics
 from ultralytics import YOLO
 
 ICI = Path(__file__).resolve().parent
-# Dans le Space, best.pt est à côté de app.py ; dans le dépôt GitHub, il est dans models/.
-POIDS = next(p for p in (ICI / "best.pt", ICI.parent / "models" / "best.pt") if p.exists())
+# Dans un Space, best.pt est à côté de app.py ; dans le dépôt, on prend la v2 (v2/best_v2.pt),
+# sinon les poids de la v1 (models/best.pt).
+POIDS = next(p for p in (ICI / "best.pt", ICI.parent / "v2" / "best_v2.pt", ICI.parent / "models" / "best.pt")
+             if p.exists())
 
 modele = YOLO(str(POIDS))
 LIBELLES = {"pedestrian": "piéton / pedestrian", "rider": "cycliste ou motard / rider"}
 
-# Images d'exemple fournies avec la bibliothèque Ultralytics (pas d'images Cityscapes).
+# Image d'exemple fournie avec la bibliothèque Ultralytics (les images du projet ne sont pas redistribuées).
 ASSETS = Path(ultralytics.__file__).parent / "assets"
-EXEMPLES = [str(ASSETS / nom) for nom in ("bus.jpg", "zidane.jpg") if (ASSETS / nom).exists()]
+EXEMPLES = [str(ASSETS / nom) for nom in ("bus.jpg",) if (ASSETS / nom).exists()]
 
 
 def detecter(image, seuil):
@@ -43,13 +45,13 @@ def detecter(image, seuil):
 
 
 DESCRIPTION = """
-**Projet PIF6004, UQTR.** Modèle **YOLOv8n** entraîné sur des images urbaines (Cityscapes) pour détecter
-deux classes : *pedestrian* (piéton) et *rider* (cycliste ou motard).
-Ajoutez une photo de rue ou essayez un exemple. Le modèle a été entraîné sur des vues de caméra embarquée :
-il est plus fiable sur des scènes de circulation que sur des portraits ou des photos en gros plan.
+**Projet PIF6004, UQTR.** Modèle **YOLOv8n** qui détecte deux classes : *pedestrian* (piéton) et *rider*
+(cycliste ou motard). La version 2 est affinée à partir de poids pré-entraînés sur COCO, sur 75 images de rue
+annotées à la main ; elle atteint un mAP@0,5 de 0,86 sur un jeu de test séparé. Ajoutez une photo de rue ou essayez l'exemple.
 
-*YOLOv8n trained on Cityscapes street scenes to detect pedestrians and riders (course project, UQTR).
-Upload a street photo or try an example. It works best on dashcam-like traffic scenes.*
+*YOLOv8n detecting pedestrians and riders (course project, UQTR). Version 2 is fine-tuned from COCO-pretrained
+weights on 75 hand-annotated street images and reaches mAP@0.5 = 0.86 on a held-out test set.
+Upload a street photo or try the example.*
 
 Code et résultats / code and results : [github.com/mireille-kafando/pedestrian-detection-adas](https://github.com/mireille-kafando/pedestrian-detection-adas)
 """
@@ -66,7 +68,7 @@ with gr.Blocks(title="Détection de piétons · YOLOv8") as demo:
             sortie = gr.Image(type="numpy", label="Résultat / result", height=420)
             resume = gr.Markdown()
     if EXEMPLES:
-        gr.Examples(EXEMPLES, inputs=entree, label="Exemples (images fournies avec Ultralytics) / examples")
+        gr.Examples(EXEMPLES, inputs=entree, label="Exemple (image fournie avec Ultralytics) / example")
     entree.change(detecter, inputs=[entree, seuil], outputs=[sortie, resume])
     bouton.click(detecter, inputs=[entree, seuil], outputs=[sortie, resume])
     seuil.release(detecter, inputs=[entree, seuil], outputs=[sortie, resume])

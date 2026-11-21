@@ -1,0 +1,13 @@
+modele,jeu,classe,precision,rappel,mAP50,mAP50_95
+v1,test,toutes,0.577,0.566,0.55,0.223
+v1,test,pedestrian,0.658,0.418,0.509,0.198
+v1,test,rider,0.496,0.714,0.59,0.249
+v1,val_v1_15_images,toutes,0.55,0.543,0.519,0.213
+v1,val_v1_15_images,pedestrian,0.644,0.391,0.485,0.19
+v1,val_v1_15_images,rider,0.456,0.696,0.552,0.236
+v2,test,toutes,0.955,0.794,0.863,0.534
+v2,test,pedestrian,0.91,0.737,0.853,0.526
+v2,test,rider,1.0,0.851,0.874,0.543
+v2,val_v1_15_images,toutes,0.916,0.804,0.857,0.541
+v2,val_v1_15_images,pedestrian,0.858,0.739,0.833,0.522
+v2,val_v1_15_images,rider,0.975,0.87,0.882,0.559
