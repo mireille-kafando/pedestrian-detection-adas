@@ -9,8 +9,8 @@ app = Flask(__name__)
 # Nom de l'application
 APP_NAME = "Pedestrian_detection"
 
-# Chemin vers le modèle pré-entrainé
-model_path = os.path.join(os.path.dirname(__file__), "..", "..", "models", "best.pt")  # chemin rendu relatif pour le dépôt
+# Poids de la v2 (2026) ; ceux de la v1 restent dans models/best.pt
+model_path = os.path.join(os.path.dirname(__file__), "..", "..", "v2", "best_v2.pt")
 
 # Charger le modèle YOLOv8
 model = YOLO(model_path)

@@ -6,6 +6,8 @@ Projet de session du cours **PIF6004** (Université du Québec à Trois-Rivière
 
 **[Essayer la démo en ligne](https://mireille-kafando.github.io/demo-pietons/)** · [Live demo](https://mireille-kafando.github.io/demo-pietons/)
 
+<p align="center"><a href="https://mireille-kafando.github.io/demo-pietons/"><img src="docs/demo_pietons.gif" width="70%" alt="Démo en ligne : détections de la v2, réglage du seuil de confiance, puis comparaison avec la v1"></a></p>
+
 ## En bref
 
 L'objectif était de détecter les piétons (`pedestrian`) et les cyclistes (`rider`) dans des scènes urbaines, une fonction centrale des systèmes avancés d'aide à la conduite. Trois approches ont été implémentées et comparées :
@@ -64,7 +66,7 @@ Intervalles à 95 % obtenus par bootstrap sur les images (2 000 rééchantillonn
 
 ## Interfaces
 
-Les trois interfaces chargent les poids YOLOv8 de [`models/best.pt`](models/best.pt) (6 Mo). Elles reçoivent une image et renvoient l'image annotée avec les boîtes détectées.
+Les trois interfaces chargent les poids de la v2, [`v2/best_v2.pt`](v2/best_v2.pt) (6 Mo). Ceux de la v1 restent dans [`models/best.pt`](models/best.pt). Elles reçoivent une image et renvoient l'image annotée avec les boîtes détectées.
 
 ```bash
 pip install -r requirements.txt
@@ -76,7 +78,12 @@ cd app/flask_app && python app.py       # variante Flask (http://127.0.0.1:5000)
 
 Le manuel d'utilisation est dans [`docs/manuel_utilisateur_interface.pdf`](docs/manuel_utilisateur_interface.pdf).
 
-Le seul changement apporté au code d'origine concerne le chemin du modèle. Il pointait vers un dossier Windows local et a été rendu relatif au dépôt.
+Trois changements ont été apportés au code remis :
+- le chemin du modèle, qui pointait vers un dossier Windows local, est relatif au dépôt ;
+- en 2026, les interfaces Streamlit et Gradio convertissent l'image en BGR avant la prédiction (voir les écarts ci-dessous) ;
+- en 2026, les trois interfaces chargent les poids de la v2, car les poids de la v1 obtiennent un mAP@0,5 de 0,519, et non de 0,685, quand on les réévalue.
+
+La version remise du code reste consultable dans l'historique Git du dépôt.
 
 **Démo en ligne : [mireille-kafando.github.io/demo-pietons](https://mireille-kafando.github.io/demo-pietons/).** Ajoutée en 2026, elle exécute les poids de la v2, ou ceux de la v1 pour comparer, exportés au format ONNX, directement dans le navigateur avec ONNX Runtime Web. Elle propose un seuil de confiance réglable et le nombre de détections par classe. Sur l'image d'exemple, elle retrouve les mêmes détections qu'Ultralytics. Elle corrige aussi l'ordre des canaux de couleur (voir les écarts ci-dessous).
 
@@ -115,7 +122,7 @@ Le notebook de la phase 2 est présenté avec ses sorties. Les figures qui repro
 
 Le projet est présenté tel qu'il a été remis. Une relecture du code a mis en évidence les points suivants, rapportés ici par transparence.
 
-- **Ordre des canaux de couleur dans les interfaces Streamlit et Gradio.** Ces deux interfaces convertissent l'image en tableau numpy RGB avant de la passer au modèle, alors qu'Ultralytics interprète les tableaux numpy comme du BGR (convention OpenCV). Le modèle reçoit donc une image aux canaux rouge et bleu inversés, ce qui réduit les détections : sur l'image d'exemple `bus.jpg`, il en trouve 0 au lieu de 3 au seuil de 0,25. L'interface Flask, qui transmet le chemin du fichier, n'est pas concernée. La démo en ligne et la version Gradio du dossier `demo/` convertissent l'image avant la prédiction.
+- **Ordre des canaux de couleur dans les interfaces Streamlit et Gradio.** Dans la version remise, ces deux interfaces convertissaient l'image en tableau numpy RGB avant de la passer au modèle, alors qu'Ultralytics interprète les tableaux numpy comme du BGR (convention OpenCV). Le modèle recevait donc une image aux canaux rouge et bleu inversés, ce qui réduisait les détections : sur l'image d'exemple `bus.jpg`, les poids de la v1 en trouvaient 0 au lieu de 3 au seuil de 0,25. L'interface Flask, qui transmet le chemin du fichier, n'est pas concernée. Corrigé en 2026 dans les deux interfaces, ainsi que dans la démo en ligne et la version Gradio du dossier `demo/` : elles détectent les 4 personnes de cette image avec les poids de la v2.
 - **Images d'entrée d'EfficientNetB0 et d'U-Net.** Les deux approches lisent les fichiers `*_gtFine_color.png` de Cityscapes. Ce sont les masques d'annotation colorés, et non les photographies (`leftImg8bit`). Les modèles ont donc appris sur des rendus des étiquettes. Leurs résultats ne mesurent pas la détection sur de vraies images.
 - **Initialisation de YOLOv8.** Le modèle est construit à partir de `yolov8n.yaml`, c'est-à-dire de l'architecture seule, alors que le commentaire de la cellule parle d'un modèle pré-entraîné. Le journal d'entraînement ne mentionne aucun transfert de poids pré-entraînés.
 - **Évaluation de YOLOv8.** Les 15 images de validation servent à la fois à choisir les meilleurs poids (`best.pt`) et à mesurer les performances rapportées. Il n'y a pas d'ensemble de test séparé.
@@ -154,13 +161,13 @@ Course project for **PIF6004** (Université du Québec à Trois-Rivières, Summe
   3. **YOLOv8n** trained on a 75-image dataset I annotated with CVAT. YOLOv5/YOLOv8 training on converted Cityscapes polygons failed.
 - **Results:** YOLOv8 performs best (precision 0.831, recall 0.536, **mAP@0.5 0.685**; pedestrians 0.592, cyclists 0.778). EfficientNetB0 and U-Net results are weak (U-Net pixel F1 0.052).
 - **Version 2 (2026):** YOLOv8n fine-tuned from COCO-pretrained weights on the same images, with disjoint training, selection and held-out test sets. On the test set, mAP@0.5 rises from 0.550 (v1) to **0.863** (bootstrap 95% CI of the difference: [+0.14, +0.48]). See `v2/`.
-- **Deployment:** the YOLOv8 weights (`models/best.pt`, 6 MB) are served through **Streamlit**, **Gradio** and **Flask** apps that return the annotated image. **Live demo: [mireille-kafando.github.io/demo-pietons](https://mireille-kafando.github.io/demo-pietons/)**: the v2 weights (or v1, for comparison), exported to ONNX, run in the browser with ONNX Runtime Web (added in 2026).
+- **Deployment:** the YOLOv8 weights (`models/best.pt`, 6 MB) are served through **Streamlit**, **Gradio** and **Flask** apps that return the annotated image. **Live demo: [mireille-kafando.github.io/demo-pietons](https://mireille-kafando.github.io/demo-pietons/)**: the v2 weights (or v1, for comparison), exported to ONNX, run in the browser with ONNX Runtime Web (added in 2026). Since 2026, the three apps load the v2 weights and the Streamlit and Gradio apps convert images to BGR before inference.
 - **Known issues:** the project is shown as submitted. A post-hoc review found several issues:
   - the EfficientNetB0 and U-Net pipelines read Cityscapes colour annotation masks (`gtFine_color`) instead of the photographs;
   - YOLOv8 was built from `yolov8n.yaml` without pretrained weights;
   - YOLOv8 was evaluated on the same 15 images used to select its weights, one of which appears twice;
   - the deployed weights likely come from a different run than the reported one;
-  - the Streamlit and Gradio apps pass RGB arrays to a model that expects BGR, which reduces detections (fixed in the live demo).
+  - the Streamlit and Gradio apps passed RGB arrays to a model that expects BGR, which reduced detections (fixed in 2026).
 
   They are listed in *Écarts relevés*.
 
